@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香港小六常識《百萬富翁》高難度挑戰版</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: radial-gradient(circle at center, #0a1329 0%, #030712 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        /* 經典百萬富翁金色與藍色光澤效果 */
+        .gold-border {
+            border: 2px solid #d4af37;
+            box-shadow: 0 0 12px rgba(212, 175, 55, 0.4), inset 0 0 8px rgba(212, 175, 55, 0.2);
+        }
+
+        .gold-text {
+            background: linear-gradient(180deg, #fff3a3 0%, #d4af37 50%, #aa7c11 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-gradient-bg {
+            background: linear-gradient(135deg, #d4af37 0%, #f39c12 50%, #aa7c11 100%);
+        }
+
+        /* 六角形按鈕造型 */
+        .hex-box {
+            position: relative;
+            background: linear-gradient(180deg, #101f42 0%, #080f24 100%);
+            border: 2px solid #2563eb;
+            clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 16px 100%, 0 50%);
+            transition: all 0.2s ease;
+        }
+
+        .hex-box:hover:not(.disabled):not(.locked) {
+            background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
+            border-color: #fbbf24;
+            box-shadow: 0 0 18px rgba(251, 191, 36, 0.6);
+            transform: scale(1.01);
+        }
+
+        .hex-box.selected {
+            background: linear-gradient(180deg, #d97706 0%, #b45309 100%) !important;
+            border-color: #ffffff !important;
+            animation: pulse-select 0.5s infinite alternate;
+        }
+
+        .hex-box.correct {
+            background: linear-gradient(180deg, #15803d 0%, #166534 100%) !important;
+            border-color: #4ade80 !important;
+            box-shadow: 0 0 22px rgba(74, 222, 128, 0.8) !important;
+        }
+
+        .hex-box.wrong {
+            background: linear-gradient(180deg, #b91c1c 0%, #991b1b 100%) !important;
+            border-color: #f87171 !important;
+            box-shadow: 0 0 22px rgba(248, 113, 113, 0.8) !important;
+        }
+
+        .hex-box.disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-select {
+            0% { opacity: 0.85; }
+            100% { opacity: 1; box-shadow: 0 0 20px #f59e0b; }
+        }
+
+        /* 獎金樹高亮與動畫 */
+        .ladder-item {
+            transition: all 0.3s ease;
+        }
+
+        .ladder-item.active {
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.95) 100%);
+            color: #ffffff;
+            font-weight: 800;
+            transform: scale(1.03);
+            box-shadow: 0 0 14px rgba(245, 158, 11, 0.85);
+            border-radius: 4px;
+        }
+
+        .ladder-item.safe {
+            color: #fef08a;
+            font-weight: 700;
+        }
+
+        .ladder-item.completed {
+            color: #6b7280;
+        }
+
+        /* Modal 動態彈窗 */
+        .modal-backdrop {
+            background: rgba(3, 7, 18, 0.88);
+            backdrop-filter: blur(8px);
+        }
+
+        /* 滾動條樣式 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #080f24;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1d4ed8;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d4af37;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen overflow-x-hidden">
+
+    <!-- 頂部導航列 -->
+    <header class="w-full px-4 py-3 flex justify-between items-center border-b border-blue-900/60 bg-slate-950/80 backdrop-blur z-20">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl">🏆</span>
+            <div>
+                <h1 class="text-base sm:text-lg font-black gold-text tracking-wide">香港小六常識《百萬富翁》高難度挑戰</h1>
+                <p class="text-[11px] text-blue-300">TSA / 升中模擬高階考點 • General Studies Advanced Edition</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="sound-toggle-btn" onclick="game.toggleAudio()" class="px-3 py-1.5 rounded-full bg-blue-950 border border-blue-700 text-xs font-semibold hover:border-amber-400 transition flex items-center gap-1.5">
+                <span id="sound-icon">🔊</span>
+                <span id="sound-text">音效：開啟</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- 主內容區 -->
+    <main class="flex-grow flex items-center justify-center p-3 sm:p-6 relative">
+        
+        <!-- 1. 開局首頁 -->
+        <section id="screen-start" class="w-full max-w-2xl bg-slate-900/95 border-2 border-amber-500/50 rounded-2xl p-6 sm:p-8 text-center shadow-2xl backdrop-blur relative z-10">
+            <div class="inline-block p-4 rounded-full bg-blue-950/90 border-2 border-amber-400 mb-4 shadow-xl">
+                <span class="text-5xl">🧠</span>
+            </div>
+            <h2 class="text-3xl sm:text-4xl font-black gold-text mb-2">百萬富翁常識大挑戰</h2>
+            <p class="text-xs sm:text-sm text-amber-300 font-bold mb-4">【高難度思考 / 情境分析 / 升中準備專用題庫】</p>
+            <p class="text-blue-200 text-xs sm:text-base mb-6 leading-relaxed">
+                本測試內置 <strong class="text-amber-300">32 條高階思考題</strong>，每次開局隨機抽出 <strong class="text-amber-300">15 條題</strong>。題目涵蓋物理機制、急救禁忌、消防原理、機械效率計算及網絡倫理！
+            </p>
+            
+            <!-- 課題涵蓋標籤 -->
+            <div class="mb-6">
+                <p class="text-xs text-slate-300 font-semibold mb-2">考核課題範疇（深入原理與情境）：</p>
+                <div class="flex flex-wrap justify-center gap-2 text-xs">
+                    <span class="px-2.5 py-1 rounded-full bg-red-950/80 text-red-200 border border-red-800">🚑 急救常識與生理機理</span>
+                    <span class="px-2.5 py-1 rounded-full bg-orange-950/80 text-orange-200 border border-orange-800">🔥 煙霧物理與回燃防範</span>
+                    <span class="px-2.5 py-1 rounded-full bg-purple-950/80 text-purple-200 border border-purple-800">⚙️ 槓桿/輪軸/齒輪計算</span>
+                    <span class="px-2.5 py-1 rounded-full bg-cyan-950/80 text-cyan-200 border border-cyan-800">⚡ 多級能量轉化與效率</span>
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-200 border border-emerald-800">🛡️ 網絡安全與心理抗逆</span>
+                </div>
+            </div>
+
+            <div class="bg-blue-950/60 p-4 rounded-xl border border-blue-800/80 mb-6 text-left text-xs sm:text-sm text-blue-200 space-y-1.5">
+                <p class="font-bold text-amber-400">📜 挑戰規則：</p>
+                <p>1. 題目由第 1 題至第 15 題難度遞增（簡單概念 $\rightarrow$ 複雜情境 $\rightarrow$ 高階綜合推導）。</p>
+                <p>2. 保障線：<strong class="text-white">第 5 題 ($10,000)</strong> 及 <strong class="text-white">第 10 題 ($50,000)</strong>。</p>
+                <p>3. 擁有 <strong class="text-amber-300">3 個錦囊</strong>：50:50、導師提示、問其他同學。</p>
+            </div>
+
+            <div class="mb-6 text-left">
+                <label for="student-name" class="block text-xs font-semibold text-blue-300 mb-1">請輸入挑戰者姓名 / 班別：</label>
+                <input type="text" id="student-name" placeholder="例如：陳大文 (6A)" class="w-full px-4 py-3 rounded-lg bg-slate-950 border border-blue-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/50 transition">
+            </div>
+
+            <button onclick="game.startNewGame()" class="w-full py-4 rounded-xl gold-gradient-bg text-slate-950 font-black text-lg tracking-wider hover:brightness-110 active:scale-98 transition shadow-lg flex items-center justify-center gap-2">
+                <span>🚀 開始高難度挑戰</span>
+            </button>
+        </section>
+
+        <!-- 2. 遊戲主介面 -->
+        <section id="screen-game" class="w-full max-w-6xl hidden flex-col lg:flex-row gap-6 items-start">
+            
+            <!-- 左側：錦囊 + 題目 + 選項 -->
+            <div class="w-full lg:w-3/4 flex flex-col gap-4">
+                
+                <!-- 頂部錦囊與關卡資訊 -->
+                <div class="w-full bg-slate-900/90 border border-blue-800/80 rounded-xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-blue-300">挑戰者：</span>
+                        <span id="display-player-name" class="font-bold text-amber-300 text-sm">--</span>
+                    </div>
+
+                    <!-- 錦囊按鈕區 -->
+                    <div class="flex items-center gap-2">
+                        <button id="lifeline-5050" onclick="game.use5050()" class="px-3 py-1.5 rounded-lg bg-blue-950 border border-amber-400/60 text-amber-300 font-bold text-xs hover:bg-amber-500 hover:text-slate-950 transition disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1">
+                            <span>✂️ 50:50</span>
+                        </button>
+                        <button id="lifeline-hint" onclick="game.useHint()" class="px-3 py-1.5 rounded-lg bg-blue-950 border border-amber-400/60 text-amber-300 font-bold text-xs hover:bg-amber-500 hover:text-slate-950 transition disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1">
+                            <span>💡 導師提示</span>
+                        </button>
+                        <button id="lifeline-poll" onclick="game.usePoll()" class="px-3 py-1.5 rounded-lg bg-blue-950 border border-amber-400/60 text-amber-300 font-bold text-xs hover:bg-amber-500 hover:text-slate-950 transition disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1">
+                            <span>📊 問其他同學</span>
+                        </button>
+                    </div>
+
+                    <!-- 手機端查看獎金樹按鈕 -->
+                    <button onclick="game.toggleMobileLadder()" class="lg:hidden px-2.5 py-1 rounded bg-blue-900 text-xs text-blue-200 border border-blue-700">
+                        🏆 獎金樹
+                    </button>
+                </div>
+
+                <!-- 題目核心框 -->
+                <div class="relative w-full bg-slate-950/95 border-2 border-blue-500 rounded-2xl p-5 sm:p-8 text-center shadow-2xl min-h-[180px] flex flex-col justify-center items-center">
+                    <div class="absolute -top-3 left-6 px-3 py-0.5 rounded-full bg-blue-900 border border-blue-400 text-[11px] text-amber-300 font-semibold tracking-wide flex items-center gap-1">
+                        <span id="question-category">範疇</span> • <span id="question-number-tag">第 1 題</span>
+                    </div>
+                    <h3 id="question-text" class="text-base sm:text-xl font-bold text-white leading-relaxed mt-2 text-left sm:text-center w-full">
+                        題目載入中...
+                    </h3>
+                </div>
+
+                <!-- 四個選項 (A, B, C, D) 2x2 網格 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-1">
+                    <button id="option-btn-0" onclick="game.selectOption(0)" class="hex-box w-full p-4 text-left flex items-start space-x-3 text-xs sm:text-sm cursor-pointer min-h-[64px]">
+                        <span class="font-black text-amber-400 text-sm">A:</span>
+                        <span id="option-text-0" class="text-slate-100 font-medium leading-normal">--</span>
+                    </button>
+
+                    <button id="option-btn-1" onclick="game.selectOption(1)" class="hex-box w-full p-4 text-left flex items-start space-x-3 text-xs sm:text-sm cursor-pointer min-h-[64px]">
+                        <span class="font-black text-amber-400 text-sm">B:</span>
+                        <span id="option-text-1" class="text-slate-100 font-medium leading-normal">--</span>
+                    </button>
+
+                    <button id="option-btn-2" onclick="game.selectOption(2)" class="hex-box w-full p-4 text-left flex items-start space-x-3 text-xs sm:text-sm cursor-pointer min-h-[64px]">
+                        <span class="font-black text-amber-400 text-sm">C:</span>
+                        <span id="option-text-2" class="text-slate-100 font-medium leading-normal">--</span>
+                    </button>
+
+                    <button id="option-btn-3" onclick="game.selectOption(3)" class="hex-box w-full p-4 text-left flex items-start space-x-3 text-xs sm:text-sm cursor-pointer min-h-[64px]">
+                        <span class="font-black text-amber-400 text-sm">D:</span>
+                        <span id="option-text-3" class="text-slate-100 font-medium leading-normal">--</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 右側：15 級獎金梯級樹 (Desktop / Mobile Modal) -->
+            <div id="ladder-container" class="w-full lg:w-1/4 bg-slate-900/90 border border-blue-800 rounded-xl p-4 shadow-xl flex flex-col justify-between hidden lg:flex">
+                <h4 class="text-xs font-bold text-blue-300 uppercase tracking-widest text-center mb-3 border-b border-blue-800/60 pb-2">
+                    🏆 獎金關卡 (Prize Ladder)
+                </h4>
+                <div id="ladder-list" class="flex flex-col space-y-1 text-xs font-mono">
+                    <!-- JS 動態生成 15 級梯級 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 結算與詳細知識點解說介面 -->
+        <section id="screen-result" class="w-full max-w-4xl hidden bg-slate-900/95 border-2 border-amber-500/50 rounded-2xl p-5 sm:p-8 shadow-2xl backdrop-blur my-4">
+            <div class="text-center mb-6">
+                <div id="result-icon" class="text-5xl sm:text-6xl mb-2">🎉</div>
+                <h2 id="result-title" class="text-2xl sm:text-3xl font-black gold-text mb-1">挑戰完成！</h2>
+                <p id="result-subtitle" class="text-blue-200 text-xs sm:text-sm">表現優秀，檢視下方知識點詳解吧！</p>
+                
+                <div class="mt-4 inline-flex flex-col sm:flex-row items-center gap-3 bg-slate-950 p-3 sm:p-4 rounded-xl border border-amber-400/40">
+                    <div class="text-center px-4">
+                        <p class="text-[11px] text-blue-400">最終獲得獎金</p>
+                        <p id="final-prize-text" class="text-2xl sm:text-3xl font-black text-amber-400 mt-0.5">$0</p>
+                    </div>
+                    <div class="h-8 w-px bg-blue-800 hidden sm:block"></div>
+                    <div class="text-center px-4">
+                        <p class="text-[11px] text-blue-400">正確答對題數</p>
+                        <p id="final-score-text" class="text-xl sm:text-2xl font-bold text-emerald-400 mt-0.5">0 / 15 題</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 本次錯題集錦與知識點溫習卡片區 -->
+            <div class="mb-6">
+                <h3 class="text-base sm:text-lg font-bold text-amber-300 mb-3 flex items-center gap-2 border-b border-blue-900 pb-2">
+                    <span>📖</span> 本局 15 題詳細知識點與答題分析 (Knowledge Review)
+                </h3>
+                <div id="review-list" class="space-y-4 max-h-[460px] overflow-y-auto pr-2">
+                    <!-- JS 動態渲染所有題目溫習卡 -->
+                </div>
+            </div>
+
+            <!-- 按鈕動作區 -->
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button onclick="game.startNewGame()" class="flex-1 py-3.5 rounded-xl gold-gradient-bg text-slate-950 font-black text-base hover:brightness-110 transition shadow-lg">
+                    🔄 重新抽題挑戰 (全新 15 題)
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modals 區 -->
+    <!-- 1. 導師提示 Modal -->
+    <div id="modal-hint" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border-2 border-amber-400 rounded-2xl p-6 max-w-md w-full shadow-2xl relative">
+            <div class="flex items-center space-x-3 mb-4 border-b border-blue-800 pb-3">
+                <span class="text-3xl">👨‍🏫</span>
+                <div>
+                    <h4 class="font-bold text-amber-300 text-sm sm:text-base">常識科導師觀念提示</h4>
+                    <p class="text-xs text-blue-300">Conceptual Hint</p>
+                </div>
+            </div>
+            <p id="hint-content-text" class="text-xs sm:text-sm text-slate-100 leading-relaxed bg-blue-950/70 p-4 rounded-xl border border-blue-800 mb-5">
+                提示載入中...
+            </p>
+            <button onclick="game.closeModal('modal-hint')" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 font-bold text-xs text-white transition">
+                明白，返回答題
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. 問其他同學 Modal (柱狀圖) -->
+    <div id="modal-poll" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border-2 border-amber-400 rounded-2xl p-6 max-w-md w-full shadow-2xl relative">
+            <div class="flex items-center space-x-3 mb-4 border-b border-blue-800 pb-3">
+                <span class="text-3xl">📊</span>
+                <div>
+                    <h4 class="font-bold text-amber-300 text-sm sm:text-base">全班同學投票結果模擬</h4>
+                    <p class="text-xs text-blue-300">Classmates' Vote Distribution</p>
+                </div>
+            </div>
+            
+            <div class="space-y-3 mb-6 bg-slate-950 p-4 rounded-xl border border-blue-900" id="poll-bars-container">
+                <!-- 動態注入 Progress Bars -->
+            </div>
+
+            <button onclick="game.closeModal('modal-poll')" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 font-bold text-xs text-white transition">
+                收到，返回答題
+            </button>
+        </div>
+    </div>
+
+    <footer class="py-3 text-center text-[11px] text-blue-400/60 border-t border-blue-950">
+        香港小六常識科高階互動溫習系統 • 專為 TSA 及升中常識評核設計
+    </footer>
+
+    <!-- 遊戲邏輯與高難度題目庫 -->
+    <script>
+        /**
+         * 1. 原生 Web Audio API 音效合成器
+         */
+        class SoundManager {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playLock() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [180, 140].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.12);
+                    gain.gain.setValueAtTime(0.12, now + i * 0.12);
+                    gain.gain.linearRampToValueAtTime(0.01, now + i * 0.12 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.12);
+                    osc.stop(now + i * 0.12 + 0.2);
+                });
+            }
+
+            playCorrect() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    gain.gain.setValueAtTime(0.18, now + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.3);
+                });
+            }
+
+            playWrong() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(80, now + 0.45);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.45);
+            }
+
+            playLifeline() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const notes = [587.33, 739.99, 880, 1174.66];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+                    gain.gain.setValueAtTime(0.12, now + idx * 0.06);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.22);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.06);
+                    osc.stop(now + idx * 0.06 + 0.22);
+                });
+            }
+        }
+
+        /**
+         * 2. 高難度常識題庫 (32 條 TSA/升中高階題)
+         */
+        const HARD_QUESTION_BANK = [
+            // --- 課題 1：急救常識 (7 題) ---
+            {
+                id: 1, category: "急救常識", difficulty: 1,
+                question: "小明流鼻血，仰頭後感到喉嚨發甜並作嘔。從解剖學角度分析，流鼻血時「仰頭」為何是極度危險的錯誤姿勢？",
+                options: [
+                    "仰頭會使頭部血壓劇增，引致微血管進一步破裂",
+                    "血液會倒流入咽喉、食道與氣管，易引致嘔吐或嗆入肺部造成窒息",
+                    "仰頭會使鼻粘膜組織快速乾裂變質",
+                    "仰頭會使血液中的紅血球迅速失氧死亡"
+                ],
+                correctIndex: 1,
+                hint: "思考人體咽喉處是呼吸道與食道的共同交叉開口。",
+                explanation: "仰頭無法止血，倒流的鼻血進入胃部會刺激胃黏膜引致劇烈嘔吐；若誤吸入氣管更可能堵塞呼吸道引致窒息。正確姿勢應為頭部微前傾，並捏住兩側鼻翼。"
+            },
+            {
+                id: 2, category: "急救常識", difficulty: 1,
+                question: "體育課時同學腳踝嚴重扭傷，患處紅腫劇痛。為何扭傷後 24 小時內「嚴禁熱敷或劇烈按摩」？",
+                options: [
+                    "熱敷會減慢患處血液循環，延長組織修復時間",
+                    "熱敷與按摩會使微血管擴張及滲透性增加，加劇內出血與局部劇烈腫脹",
+                    "熱敷會使受損韌帶永久失去彈性",
+                    "熱敷會破壞皮膚表面的無菌屏障"
+                ],
+                correctIndex: 1,
+                hint: "思考熱脹冷縮對微血管直徑及血液流速的影響。",
+                explanation: "扭傷初期微血管破裂出血。冰敷可收縮血管止血止痛（RICE 原則中的 Ice）；若此時熱敷或按摩會舒張血管，導致大量血液滲入組織間隙，嚴重加劇腫脹與疼痛。"
+            },
+            {
+                id: 3, category: "急救常識", difficulty: 2,
+                question: "實驗課熱水打翻導致手臂出現大量透明水泡（二級燒傷）。處置水泡時下列哪項屬於「致命錯誤」？",
+                options: [
+                    "用流動冷水持續沖洗 15-20 分鐘進行降溫",
+                    "用消毒針刺破水泡以釋放積液，加速傷口乾燥",
+                    "用潔淨無菌紗布鬆鬆地覆蓋創面並送院",
+                    "剪去未黏連的衣服，保留黏連於皮膚上的布料"
+                ],
+                correctIndex: 1,
+                hint: "水泡的未破表皮是保護皮下創面的天然無菌屏障。",
+                explanation: "水泡表皮能隔絕外界細菌。人為刺破水泡會使無菌創面直接暴露於空氣中，極易引致嚴重細菌感染及留下疤痕。應保持水泡完整並由醫護人員處理。"
+            },
+            {
+                id: 4, category: "急救常識", difficulty: 2,
+                question: "當皮膚不慎被強酸或強鹼化學品濺中時，為何急救時「切勿嘗試酸鹼中和法」（如用弱鹼塗抹酸灼傷）？",
+                options: [
+                    "酸鹼中和反應會釋放大量熱能（中和熱），會在受損皮膚上造成嚴重的二次熱灼傷",
+                    "中和反應會生成劇毒氣體滲入血液",
+                    "弱鹼會與酸結合生成強烈腐蝕性鹽類",
+                    "中和反應會導致患處組織迅速肌肉壞死"
+                ],
+                correctIndex: 0,
+                hint: "酸鹼中和反應屬於放熱反應（Exothermic Reaction）。",
+                explanation: "酸鹼中和屬於強烈放熱反應。直接在化學灼傷的皮膚上中和會產生極高熱量，引致嚴重的熱灼傷。唯一正確急救是用大量流動清水持續沖洗至少 20 分鐘以稀釋化學品。"
+            },
+            {
+                id: 5, category: "急救常識", difficulty: 3,
+                question: "針對「1 歲以下嬰兒」與「成人」的氣管異物梗塞（海姆立克急救法），有何關鍵的機理與操作區別？",
+                options: [
+                    "嬰兒應採用倒立懸空拍打，成人採用胸部壓迫",
+                    "嬰兒嚴禁直接進行腹部衝擊，應採用「5次頭低腳高背部拍擊 + 5次雙指胸部衝擊」交替",
+                    "嬰兒與成人均應直接使用雙手環抱上腹部用力向上衝擊",
+                    "嬰兒只需給予大量飲水，成人則需施加心肺復甦"
+                ],
+                correctIndex: 1,
+                hint: "嬰兒的肝臟與腹部內臟非常脆弱且發育未健全。",
+                explanation: "嬰兒腹部器官（如肝臟、脾臟）脆弱且發育未全，用力衝擊腹部極易造成內臟破裂出血。因此 1 歲以下嬰兒必須採用「頭低腳高姿態下的 5 次背部拍擊 + 5 次雙指胸部壓迫」交替進行。"
+            },
+            {
+                id: 6, category: "急救常識", difficulty: 3,
+                question: "同儕在野外被生鏽鐵釘深層刺穿腳底皮膚，傷口較深但出血不多。為何此類深度刺傷必須即時注射「破傷風疫苗」？",
+                options: [
+                    "生鏽鐵釘含有強酸性化學物質會溶解骨骼",
+                    "破傷風桿菌是厭氧菌，小而深的無氧傷口環境極易讓其大量繁殖並釋放強烈神經毒素",
+                    "鐵鏽進入血液會引致重金屬急劇中毒",
+                    "生鏽鐵釘會引致壞血病"
+                ],
+                correctIndex: 1,
+                hint: "思考「厭氧菌（Anaerobic Bacteria）」在缺少氧氣環境下的繁殖特性。",
+                explanation: "破傷風桿菌屬於厭氧菌，在小而深、空氣無法進入的無氧刺傷傷口中繁殖最快，並會分泌毒素破壞神經系統導致肌肉抽搐與窒息。因此深層刺傷必須進行破傷風預防。"
+            },
+            {
+                id: 7, category: "急救常識", difficulty: 3,
+                question: "酷熱天氣下，小強體溫達 40.5°C、皮膚乾熱無汗、神志不清；小明體溫 38°C、大量出汗、皮膚蒼白濕冷。下列診斷及處置何者完全正確？",
+                options: [
+                    "小強屬熱衰竭，給予飲水即可；小明屬中暑，需立即心肺復甦",
+                    "小強屬極危急的中暑（體溫調節中樞癱瘓），需立即物理降溫並送院；小明屬熱衰竭，應平臥抬高雙腳並補充電解質",
+                    "兩人均屬普通熱衰竭，只需移到陰涼處休息",
+                    "小強因大量出汗脫水，小明因體溫過高腦部受損"
+                ],
+                correctIndex: 1,
+                hint: "注意體溫是否超過 40°C 以及皮膚是否有汗水（體溫調節機能是否失效）。",
+                explanation: "中暑（Heatstroke）體溫調節失效，體溫 >40°C 且無汗昏迷，屬於死亡率極高的緊急情況，必須立即全身物理降溫；熱衰竭（Heat Exhaustion）因大量出汗失水失鹽，體溫略高且皮膚濕冷，應補充電解質並抬高雙腿增加回心血量。"
+            },
+
+            // --- 課題 2：走火警與消防安全 (6 題) ---
+            {
+                id: 8, category: "走火警與消防", difficulty: 1,
+                question: "大廈發生火警逃生時，從氣體熱力學角度分析，為何必須保持身體貼近地面（離地約 30-50 cm）？",
+                options: [
+                    "地面的重力較大，能吸引毒氣沉降",
+                    "高溫濃煙密度較小會向上浮集於天花板，離地面 30-50 cm 處存留較多殘餘冷空氣與氧氣",
+                    "地面摩擦力較大能加速爬行速度",
+                    "濃煙中的一氧化碳在地面會自動分解為無毒二氧化碳"
+                ],
+                correctIndex: 1,
+                hint: "氣體受熱膨脹，密度降低（熱空氣上升）。",
+                explanation: "熱濃煙（含高溫一氧化碳及氰化氫毒氣）因熱浮力作用會迅速積聚於天花板並向下延伸。地面 30-50cm 空間是新鮮空氣最後停留的區域，能有效減少吸入毒氣。"
+            },
+            {
+                id: 9, category: "走火警與消防", difficulty: 1,
+                question: "逃生前用「手背」觸摸門鎖與門板，且開門時不能正面對著門縫。這主要防範哪種極危險的消防現象？",
+                options: [
+                    "手背接觸能消除靜電，開門防止門縫產生「回燃 (Backdraft)」爆燃傷害身體",
+                    "手背神經敏感且燙傷不影響抓握；突然開門使大量氧氣衝入缺氧高溫火場會引致爆發性「回燃」",
+                    "正面對著門縫會阻擋其他人逃生",
+                    "手背接觸可測試門板是否帶電"
+                ],
+                correctIndex: 1,
+                hint: "思考手背神經與反射，以及缺氧高溫火場突獲大量氧氣時的化學反應。",
+                explanation: "手背神經敏感且燙傷不影響手掌抓握；若門板燙手代表門後已是火海。突然開門會使大量氧氣衝入缺氧高溫的室內，引致積聚的可燃氣體瞬間爆燃（Backdraft），衝擊波會直接傷及門前的人。"
+            },
+            {
+                id: 10, category: "走火警與消防", difficulty: 2,
+                question: "大廈走廊與樓梯已被劇烈黑煙充斥無法向下逃生。此時最安全的「就地庇護 (Shelter-in-place)」處置組合是？",
+                options: [
+                    "衝入電梯嘗試快速降至地面",
+                    "返回單位內，關閉所有門窗，用濕毛巾塞封門縫並持續澆水，至有窗戶及無煙的房間揮動鮮艷衣物求救",
+                    "打開單位所有窗戶促進對流，讓濃煙吹走",
+                    "躲入密封無窗的洗手間或衣櫃內靜候救援"
+                ],
+                correctIndex: 1,
+                hint: "防範濃煙滲入及確保向外獲取氧氣與向消防員發出位置信號。",
+                explanation: "樓梯被黑煙封堵時切勿硬衝（數秒即可致死）。返回單位關門、濕布塞門縫、澆水降溫可有效隔離煙火。打開面向無煙空氣的窗戶求救；電梯在火警中會斷電困人，無窗洗手間易積聚煙霧窒息。"
+            },
+            {
+                id: 11, category: "走火警與消防", difficulty: 2,
+                question: "廚房煮食時油鍋突發大火。為何向起火的油鍋「潑水」會引致災難性的劇烈爆炸？",
+                options: [
+                    "水與滾油發生化學反應生成氫氣爆炸",
+                    "水密度比油大且沸點低，沉入 300°C 油底後瞬間劇烈汽化膨脹 1700 倍，將沸油帶入空氣形成巨大油霧火球",
+                    "水中含有溶解氧，會直接加劇燃燒",
+                    "水會溶解油中的脂肪酸引致劇毒"
+                ],
+                correctIndex: 1,
+                hint: "水與油的密度差異，以及水在高溫油中瞬間汽化的物理現象。",
+                explanation: "滾油溫度高達 300°C。水密度大於油會下沉，隨即瞬間沸騰汽化膨脹約 1700 倍，將上層熾熱的油滴劇烈炸飛至空中，與空氣充分混合造成巨大爆燃火球。"
+            },
+            {
+                id: 12, category: "走火警與消防", difficulty: 3,
+                question: "針對機房帶電電器短路火災（Class C 火災），為何「二氧化碳滅火器 (CO2 Extinguisher)」優於水劑滅火器？",
+                options: [
+                    "二氧化碳能使電路板迅速降溫至絕對零度",
+                    "二氧化碳不導電（防止人員觸電）、不留殘渣（保護精密儀器），且能透過排擠空氣窒息滅火",
+                    "二氧化碳會與電線塑膠反應生成不燃固體",
+                    "二氧化碳能增加電阻阻止電流通過"
+                ],
+                correctIndex: 1,
+                hint: "水和水基泡沫導電會致人觸電，且液體會毀壞精密電子零件。",
+                explanation: "CO2 氣體不導電（防止救援者觸電），滅火後揮發不留殘渣（保護精密電腦硬件），透過冷卻與隔絕氧氣（窒息法）達到高效撲滅電器火災。"
+            },
+            {
+                id: 13, category: "走火警與消防", difficulty: 3,
+                question: "逃生時身上衣物不慎着火，「停、躺、滾 (Stop, Drop and Roll)」背後的物理與消防學原理是什麼？",
+                options: [
+                    "滾動能產生風力將火吹滅",
+                    "奔跑會補充充足氧氣加劇火勢；躺下並貼地滾動能利用身體重力壓滅火苗，隔絕氧氣（壓滅/窒息法）",
+                    "躺下能使人體體溫迅速下降",
+                    "滾動能把汗水塗滿全身達到防火效果"
+                ],
+                correctIndex: 1,
+                hint: "奔跑形成相對風速，提供大量氣流與氧氣。",
+                explanation: "奔跑會提供大量氧氣助燃（風助火勢）且使火苗貼近面部；立即停下躺倒、雙手護面並在地上來回滾動，可利用身體壓迫隔絕氧氣以迅速壓滅火苗。"
+            },
+
+            // --- 課題 3：簡單機械 (7 題) ---
+            {
+                id: 14, category: "簡單機械", difficulty: 1,
+                question: "用鑷子夾取郵票或用筷子夾菜均屬於「費力槓桿」（動力臂 < 阻力臂）。人們為何廣泛使用這種「費力」機械？",
+                options: [
+                    "它們能成倍節省手部施力大小",
+                    "它們雖然費力，但能節省手部移動距離，換取極高的操作靈敏度、精準度與衛生防護",
+                    "它們能自動改變重力方向",
+                    "它們能將機械能轉化為電能"
+                ],
+                correctIndex: 1,
+                hint: "槓桿原理中 F1 × L1 = F2 × L2，省力則費距離，費力則省距離。",
+                explanation: "費力槓桿（動力點在支點與阻力點之間）雖然需要施加大於物件重力的力，但手指微小的移動就能帶動前端產生較大的位移與靈活精細操控，達成「費力換取距離與精準」的目的。"
+            },
+            {
+                id: 15, category: "簡單機械", difficulty: 1,
+                question: "工人將重 400 N 的物體提升 5 米高。若不計摩擦力，使用「1個單純動滑輪」與「1個單純定滑輪」相比，施力與拉繩距離有何差異？",
+                options: [
+                    "動滑輪需施力 200 N，拉繩距離 10 米；定滑輪需施力 400 N，拉繩距離 5 米",
+                    "動滑輪需施力 400 N，拉繩距離 5 米；定滑輪需施力 200 N，拉繩距離 10 米",
+                    "兩者施力與拉繩距離完全相同",
+                    "動滑輪需施力 800 N，拉繩距離 2.5 米"
+                ],
+                correctIndex: 0,
+                hint: "動滑輪省一半力（F = W/2），但代價是繩子移動距離加倍（S = 2h）。",
+                explanation: "動滑輪由兩段繩子分擔重物重量，故省力一半（400 ÷ 2 = 200 N），但根據功的原理（W = F × S），拉繩距離必須翻倍（5 m × 2 = 10 m）。定滑輪不省力（400 N）、不省距離（5 m），僅改變用力方向。"
+            },
+            {
+                id: 16, category: "簡單機械", difficulty: 2,
+                question: "水龍頭旋鈕與汽車方向盤均屬於輪軸。為何大輪（R）直徑越大，轉動時就越省力？其力學關係式為？",
+                options: [
+                    "輪軸屬於變形槓桿，動力作用於大輪時，動力臂為輪半徑 R，阻力臂為軸半徑 r；F輪 × R = F軸 × r",
+                    "大輪的摩擦力較小，故能省力",
+                    "大輪能產生額外的空氣浮力",
+                    "大輪改變了離心力的方向"
+                ],
+                correctIndex: 0,
+                hint: "輪與軸同軸轉動，可以看作以軸心為支點的 360 度連續旋轉槓桿。",
+                explanation: "輪軸本質是可連續旋轉的槓桿。軸心為支點，大輪半徑 R 為動力臂，小軸半徑 r 為阻力臂。由於 R > r，故在輪上施力可獲得放大 R/r 倍的轉矩（Torque），達到省力效果。"
+            },
+            {
+                id: 17, category: "簡單機械", difficulty: 2,
+                question: "螺絲釘上的螺紋本質是盤旋的斜面。比較「螺紋密集（螺距小）」與「螺紋稀疏（螺距大）」長度相同的螺絲，擰入木頭時有何差異？",
+                options: [
+                    "螺紋密集的螺絲相當於坡度較平緩的斜面，擰入時更省力，但旋轉圈數更多",
+                    "螺紋密集的螺絲更費力，但旋轉圈數較少",
+                    "兩者省力程度與旋轉圈數完全相同",
+                    "螺紋稀疏的螺絲完全無法擰入木頭"
+                ],
+                correctIndex: 0,
+                hint: "將螺絲上的螺紋展開，它就是一個繞在圓柱體上的斜面。",
+                explanation: "螺紋展開後為斜面。螺距越小（螺紋越密集），相當於斜面長度增加、傾角（坡度）減小。根據斜面原理，坡度越平緩越省力，但代價是擰入相同深度需要旋轉更多圈數（費距離/時間）。"
+            },
+            {
+                id: 18, category: "簡單機械", difficulty: 3,
+                question: "鐘錶內部由 3 個互相咬合的齒輪 A、B、C 串聯組成。齒數為 A (10齒, 主動輪)、B (20齒, 中介輪)、C (30齒, 從動輪)。當 A 順時針轉動 6 圈時，C 的轉向與圈數分別是？",
+                options: [
+                    "順時針旋轉 2 圈",
+                    "逆時針旋轉 2 圈",
+                    "順時針旋轉 18 圈",
+                    "逆時針旋轉 6 圈"
+                ],
+                correctIndex: 0,
+                hint: "兩齒輪咬合轉向相反（奇數個齒輪首尾同向）；轉動圈數與齒數成反比（NA × TA = NC × TC）。",
+                explanation: "轉向：A 順時針 -> B 逆時針 -> C 順時針（奇數 3 個齒輪首尾同向）。圈數：傳遞齒數總量相等，10齒 × 6圈 = 60齒次。故 C 轉動圈數 = 60 ÷ 30齒 = 2圈。"
+            },
+            {
+                id: 19, category: "簡單機械", difficulty: 3,
+                question: "腳踏車結合了多種簡單機械。下列關於腳踏車各部件對應的機械原理，哪一項分析完全正確？",
+                options: [
+                    "手煞車拉桿是槓桿；車把手是輪軸；腳踏板帶動大齒盤是輪軸；鏈條與齒輪是齒輪傳動",
+                    "車把手是斜面；腳踏板是定滑輪；手煞車是動滑輪",
+                    "腳踏車全部部件僅利用了斜面原理",
+                    "腳踏車後輪是費力斜面，車前燈是槓桿"
+                ],
+                correctIndex: 0,
+                hint: "分拆車把手（圓弧旋轉）、煞車拉桿（支點/力點）、腳踏板與齒盤的結構。",
+                explanation: "腳踏車是複合機械：手煞車拉桿是省力槓桿；車把手為輪軸（手握處為大輪）；腳踏板旋轉軸心帶動齒盤為輪軸；腳踏板齒盤經鏈條帶動後輪飛輪為齒輪/鏈條傳動系統。"
+            },
+            {
+                id: 20, category: "簡單機械", difficulty: 3,
+                question: "用斜面將重 100 N 箱子推上 2 米高平台，斜面長 5 米，沿斜面推力為 50 N。計算該斜面的有用功、總功與機械效率（Efficiency），並解釋效率未達 100% 原因？",
+                options: [
+                    "有用功 200 J，總功 250 J，機械效率 80%；未達 100% 是因為克服斜面摩擦力做了額外功（轉為熱能）",
+                    "有用功 250 J，總功 200 J，機械效率 125%；因為斜面產生了能量",
+                    "有用功 100 J，總功 100 J，機械效率 100%",
+                    "有用功 500 J，總功 100 J，機械效率 20%"
+                ],
+                correctIndex: 0,
+                hint: "有用功 Wuseful = G × h；總功 Wtotal = F × L；效率 η = Wuseful / Wtotal × 100%。",
+                explanation: "有用功 Wuseful = 100N × 2m = 200 J。總輸入功 Wtotal = 50N × 5m = 250 J。機械效率 η = 200 / 250 = 80%。其餘 50 J（額外功）因克服箱子與斜面之間的摩擦力轉化為了無效的熱能。"
+            },
+
+            // --- 課題 4：能量轉換 (6 題) ---
+            {
+                id: 21, category: "能量轉換", difficulty: 1,
+                question: "香港火力發電廠利用燃煤發電為城市供電。在整個發電過程中，能量轉換的完整多級順序是？",
+                options: [
+                    "煤炭化學能 -> 燃燒熱能 -> 水蒸氣動能 -> 發電機機械能 -> 電能",
+                    "電能 -> 化學能 -> 熱能 -> 核能",
+                    "勢能 -> 光能 -> 化學能 -> 電能",
+                    "熱能 -> 勢能 -> 化學能 -> 電能"
+                ],
+                correctIndex: 0,
+                hint: "煤炭儲存養分/化學能，燃燒產生高溫高壓蒸氣推動蒸汽輪機轉動。",
+                explanation: "煤炭蘊含化學能，燃燒轉化為熱能將水煮沸成高壓蒸汽（動能/熱能），蒸汽衝擊渦輪機轉動（機械能），最後帶動發電機切割磁力線產生電能。"
+            },
+            {
+                id: 22, category: "能量轉換", difficulty: 1,
+                question: "單擺（Pendulum）擺球在空中來回擺動，最終會慢慢停下來。根據「能量守恆定律」，擺球停下意味著什麼？",
+                options: [
+                    "擺球的能量憑空消失了",
+                    "擺球的機械能（重力勢能與動能）因克服空氣阻力與懸掛點摩擦力，逐漸轉化為熱能散逸到空氣中",
+                    "重力停止了對擺球作用",
+                    "擺球的能量轉化為了核能"
+                ],
+                correctIndex: 1,
+                hint: "能量既不會憑空產生，也不會憑空消失，只會從一種形式轉化為另一種形式。",
+                explanation: "能量總量守恆。擺球擺動時，最高點的重力勢能與最低點的動能互相轉化。過程中因空氣阻力及軸承摩擦，機械能逐漸轉化為微小的熱能散失到環境中，直至機械能為零停下。"
+            },
+            {
+                id: 23, category: "能量轉換", difficulty: 2,
+                question: "天台安裝了「太陽能光伏板 (PV)」與「太陽能熱水器 (Solar Thermal)」。兩者在能量轉換機制上的本質區別是？",
+                options: [
+                    "光伏板將太陽光能直接轉化為電能；熱水器將太陽紅外線輻射能轉化為水的熱能",
+                    "光伏板產生熱水，熱水器產生電力",
+                    "兩者均是將太陽能轉化為核能",
+                    "光伏板需要風力配合，熱水器需要電池"
+                ],
+                correctIndex: 0,
+                hint: "一個利用半導體光電效應發電，另一個利用黑體吸收熱量加熱水流。",
+                explanation: "太陽能光伏板（Photovoltaic）利用半導體PN結將光能直接轉變為直流電能；太陽能熱水器（Solar Thermal）則是透過集熱管吸收太陽光線中的紅外線熱輻射，將光能轉化為流體的熱能（溫水）。"
+            },
+            {
+                id: 24, category: "能量轉換", difficulty: 2,
+                question: "比較白熾燈、螢光燈與 LED 燈的發光效率。為何傳統白熾燈極度浪費電力，而 LED 燈能節省高達 80% 電能？",
+                options: [
+                    "白熾燈將約 90% 以上電能轉化為無用的熱能（發熱），僅不到 10% 轉為光能；LED 熱損耗極低，大部份轉為光能",
+                    "白熾燈產生的光線會吸收電能",
+                    "LED 燈不需要消耗任何電能即可發光",
+                    "白熾燈使用的是直流電，LED 使用的是核能"
+                ],
+                correctIndex: 0,
+                hint: "熱發光與半導體電光轉化的效率差異。",
+                explanation: "白熾燈透過電流加熱鎢絲至高溫白熾發光，超過 90% 的電能轉化為熱能散失（極為浪費）；LED 屬於冷光源，利用半導體載流子複合發光，熱損耗極低，電能轉化為光能的效率極高。"
+            },
+            {
+                id: 25, category: "能量轉換", difficulty: 3,
+                question: "樹木吸收陽光生長，多年後被砍伐燒成木炭，最後人用木炭烤肉並跑步消化。這連串過程的能量傳遞鏈是？",
+                options: [
+                    "太陽輻射光能 -> 植物光合作用化學能 -> 燃燒熱能 / 人體吸收化學能 -> 人體肌肉動能與體溫熱能",
+                    "光能 -> 重力勢能 -> 機械能 -> 電能",
+                    "核能 -> 電能 -> 光能 -> 化學能",
+                    "化學能 -> 光能 -> 勢能 -> 核能"
+                ],
+                correctIndex: 0,
+                hint: "追蹤能量從太陽光子到生物體內有機物，再到肌肉收縮的轉變。",
+                explanation: "植物葉綠素吸收太陽光能，經光合作用將光能轉化為儲存在葡萄糖與木質素中的化學能。木炭燃燒釋放熱能，人體攝食吸收有機物化學能，經呼吸作用在細胞內轉化為 ATP 供肌肉收縮（動能）及維持體溫（熱能）。"
+            },
+            {
+                id: 26, category: "能量轉換", difficulty: 3,
+                question: "電動汽車（EV）在下坡或煞車減速時，儀表板顯示 battery charging（電池充電中）。這項「再生煞車」技術的原理是？",
+                options: [
+                    "將車輛減速時的車輪動能，透過電動機反向運作（變身發電機）轉化為電能儲存回電池化學能",
+                    "煞車片摩擦發熱直接轉化為電能",
+                    "利用風力發電機在車頂充電",
+                    "利用煞車時的聲能發電"
+                ],
+                correctIndex: 0,
+                hint: "電磁感應可逆原理：電能可帶動馬達旋轉，反過來外力帶動馬達旋轉亦能發電。",
+                explanation: "傳統油車煞車將動能經煞車片摩擦完全變成廢熱散失；電動車再生煞車讓馬達倒轉變成發電機，把車輛慣性動能切磁線轉化為電能，並以化學能形式存回電池，大大提升能源利用率。"
+            },
+
+            // --- 課題 5：正確人生觀與網絡安全 (6 題) ---
+            {
+                id: 27, category: "網絡安全與倫理", difficulty: 1,
+                question: "收到 SMS 短訊稱學校賬戶異常，附帶連結 `http://www.sch00l-hk-portal.xyz/login` 要求輸入密碼。分析此訊息，識別為「釣魚詐騙」的最佳依據是？",
+                options: [
+                    "網址域名拼寫異常（用 0 代替 o，副檔名為非官方 .xyz），且非安全的 https 協定，試圖竊取憑證",
+                    "SMS 短訊含有繁體中文",
+                    "系統發送時間是在晚上",
+                    "網址字元數量太少"
+                ],
+                correctIndex: 0,
+                hint: "注意域名拼寫細節（Spoofed URL）與網絡安全協定標誌（https:// 與 SSL 證書）。",
+                explanation: "釣魚攻擊常利用相似域名（如用數字 0 冒充字母 o）欺騙用戶。官方學校網絡應使用正式 .edu.hk 或 .gov.hk 域名及 https 加密。遇到要求輸入賬密的不明連結切勿點擊。"
+            },
+            {
+                id: 28, category: "網絡安全與倫理", difficulty: 1,
+                question: "班級群組內有人上載了惡意修圖的同學醜照，其他人紛紛打出笑臉 emoji 嘲笑。作為群組一員，符合數位公民責任的做法是？",
+                options: [
+                    "跟著轉發並留言嘲笑以融入群組",
+                    "不跟風嘲笑，私下關心受害者，保留截圖證據並向家長或老師舉報該欺凌行為",
+                    "退出群組裝作完全不知情",
+                    "惡語相向直接在群組內與發帖者互相辱罵"
+                ],
+                correctIndex: 1,
+                hint: "網絡旁觀者若附和或沉默會助長欺凌；理智保留證據並尋求師長協助才是正途。",
+                explanation: "網絡欺凌中，附和或轉發會造成二次傷害。負責任的數位公民應拒絕參與嘲笑、保留證據、給予受害者情緒支持並通知師長處理，而不是盲從或以暴制暴。"
+            },
+            {
+                id: 29, category: "心理健康與抗逆力", difficulty: 2,
+                question: "小明常識報告被評為 B 級，感到極度沮喪並認為「自己是個徹底失敗者」。根據心理學 ABC 情緒理論，小明應如何透過「認知重構」建立抗逆力？",
+                options: [
+                    "改變 B（信念）：認識到「一次 B 級不代表個人價值失敗，而是發現改進空間的契機」，從而改善 C（情緒）",
+                    "改變 A（引發事件）：要求老師重新修改評分",
+                    "壓抑情緒，假裝分數不存在",
+                    "將責任歸咎於組員表現差"
+                ],
+                correctIndex: 0,
+                hint: "決定我們情緒的往往不是事件本身，而是我們對事件的詮釋與看法。",
+                explanation: "ABC理論指出，情緒結果 C 由信念 B 決定。小明將「B級」解讀為「徹底失敗」屬於非理性信念。透過成長型思維（Growth Mindset）重新詮釋評分，視為學習與改進的建議，能建立堅韌的抗逆力。"
+            },
+            {
+                id: 30, category: "網絡安全與倫理", difficulty: 2,
+                question: "免費手機遊戲設置「限時轉盤抽獎」，並透過連續登入獎勵與「差一點就中稀有道具」的動畫吸引玩家。遊戲設計者利用了什麼心理陷阱？",
+                options: [
+                    "利用「錯失恐懼 (FOMO)」與「差點中獎 (Near-miss)」效應，誘導玩家形成行為制約與衝動課金賭博心理",
+                    "單純為了無償回饋玩家",
+                    "利用遊戲玩家過度喜歡做數學計算的心理",
+                    "利用遊戲玩家希望學習歷史知識的心理"
+                ],
+                correctIndex: 0,
+                hint: "思考「差點中獎 (Near-miss)」與登入獎勵如何刺激腦內多巴胺分泌。",
+                explanation: "遊戲廠牌常利用「暗黑模式」設計（如Near-miss機制、限時倒數、連續登入獎勵），製造錯失恐懼（FOMO）刺激玩家多巴胺，誘使未成年人養成沉迷與衝動消費/賭博習慣。"
+            },
+            {
+                id: 31, category: "網絡安全與倫理", difficulty: 3,
+                question: "小華製作常識簡報時，從網上下載了一張標註為「CC BY-NC (姓名標示-非商業性)」的圖片。下列哪種使用方式符合該 Creative Commons 條款？",
+                options: [
+                    "在簡報中引用圖片並註明原作者姓名及來源，且簡報僅用於課堂學習展示（非商業用途）",
+                    "將圖片印成明信片在學校義賣市集售賣",
+                    "修改圖片後抹去原作者名字，聲稱是自己拍攝",
+                    "將圖片上載至個人收費網站出售"
+                ],
+                correctIndex: 0,
+                hint: "解析 BY（姓名標示）與 NC（Non-Commercial 非商業性）的具體約束條件。",
+                explanation: "CC BY-NC 授權要求：1. BY：必須標註原作者姓名與出處；2. NC：不得用於任何商業盈利目的。課堂簡報非商業用途且註明出處完全符合規範。抹去署名或售賣均屬侵權行為。"
+            },
+            {
+                id: 32, category: "心理健康與抗逆力", difficulty: 3,
+                question: "小強做實驗時弄翻試管致實驗失敗，小剛非常憤怒。下列哪句對話屬於能有效降低對立、促進問題解決的「我訊息 (I-Message)」？",
+                options: [
+                    "「當實驗試管被弄翻時，我感到很焦慮和沮喪，因為我們花了兩星期準備。我們現在能一起想想怎樣清理並重新做一次嗎？」",
+                    "「你這個粗心大意的傢伙！你每次都把事情搞砸！」",
+                    "不發一言，翻白眼並把東西扔在地上",
+                    "「隨便啦，反正這科成績也不重要」"
+                ],
+                correctIndex: 0,
+                hint: "「我訊息」三要素：描述客觀事實 + 表達自身感受 + 提出具體建設性需求（避免人身攻擊）。",
+                explanation: "「我訊息（I-Message）」聚焦於「客觀行為 + 個人感受 + 具體訴求」，避免對他人進行人格攻擊（如「你總是...」），能防止對方產生防禦戒備心理，是建設性解決衝突的高級溝通技巧。"
+            }
+        ];
+
+        // 15 級關卡獎金設定
+        const PRIZE_STAGES = [
+            { level: 1,  prize: 1000,    formatted: "$1,000",   safe: false },
+            { level: 2,  prize: 2000,    formatted: "$2,000",   safe: false },
+            { level: 3,  prize: 3000,    formatted: "$3,000",   safe: false },
+            { level: 4,  prize: 4000,    formatted: "$4,000",   safe: false },
+            { level: 5,  prize: 10000,   formatted: "$10,000",  safe: true },  // 保障線 1
+            { level: 6,  prize: 20000,   formatted: "$20,000",  safe: false },
+            { level: 7,  prize: 30000,   formatted: "$30,000",  safe: false },
+            { level: 8,  prize: 40000,   formatted: "$40,000",  safe: false },
+            { level: 9,  prize: 50000,   formatted: "$50,000",  safe: true },  // 保障線 2
+            { level: 10, prize: 100000,  formatted: "$100,000", safe: false },
+            { level: 11, prize: 150000,  formatted: "$150,000", safe: false },
+            { level: 12, prize: 250000,  formatted: "$250,000", safe: false },
+            { level: 13, prize: 500000,  formatted: "$500,000", safe: false },
+            { level: 14, prize: 750000,  formatted: "$750,000", safe: false },
+            { level: 15, prize: 1000000, formatted: "$1,000,000", safe: true } // 大獎
+        ];
+
+        /**
+         * 3. 遊戲控制器與邏輯類
+         */
+        class MillionaireGame {
+            constructor() {
+                this.sound = new SoundManager();
+                this.playerName = "";
+                this.currentQuestions = [];
+                this.currentIndex = 0;
+                this.lifelines = { fiftyFifty: true, hint: true, poll: true };
+                this.userAnswers = [];
+                this.isLocked = false;
+            }
+
+            startNewGame() {
+                const nameInput = document.getElementById('student-name').value.trim();
+                this.playerName = nameInput || "常識學霸";
+                document.getElementById('display-player-name').innerText = this.playerName;
+
+                // 重置錦囊與狀態
+                this.lifelines = { fiftyFifty: true, hint: true, poll: true };
+                this.updateLifelineUI();
+                this.currentIndex = 0;
+                this.userAnswers = [];
+                this.isLocked = false;
+
+                // 從 32 條題庫中依難度抽取 15 題
+                this.currentQuestions = this.select15Questions();
+
+                // 切換介面
+                this.showScreen('screen-game');
+                this.renderPrizeLadder();
+                this.loadQuestion();
+            }
+
+            // 抽題邏輯 (5 條簡單/中等 + 5 條中等/複雜 + 5 條高階/TSA)
+            select15Questions() {
+                const diff1 = HARD_QUESTION_BANK.filter(q => q.difficulty === 1);
+                const diff2 = HARD_QUESTION_BANK.filter(q => q.difficulty === 2);
+                const diff3 = HARD_QUESTION_BANK.filter(q => q.difficulty === 3);
+
+                const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
+
+                const selected1 = shuffle(diff1).slice(0, 5);
+                const selected2 = shuffle(diff2).slice(0, 5);
+                const selected3 = shuffle(diff3).slice(0, 5);
+
+                const raw15 = [...selected1, ...selected2, ...selected3];
+
+                // 選項隨機打亂並更新正確答案索引
+                return raw15.map(q => {
+                    const originalCorrectText = q.options[q.correctIndex];
+                    const shuffledOptions = shuffle(q.options);
+                    const newCorrectIndex = shuffledOptions.indexOf(originalCorrectText);
+                    return {
+                        ...q,
+                        options: shuffledOptions,
+                        correctIndex: newCorrectIndex
+                    };
+                });
+            }
+
+            loadQuestion() {
+                this.isLocked = false;
+                const q = this.currentQuestions[this.currentIndex];
+
+                document.getElementById('question-category').innerText = q.category;
+                document.getElementById('question-number-tag').innerText = `第 ${this.currentIndex + 1} 題 / 共 15 題 (${PRIZE_STAGES[this.currentIndex].formatted})`;
+                document.getElementById('question-text').innerText = q.question;
+
+                // 重置選項按鈕
+                for (let i = 0; i < 4; i++) {
+                    const btn = document.getElementById(`option-btn-${i}`);
+                    const txt = document.getElementById(`option-text-${i}`);
+                    txt.innerText = q.options[i];
+
+                    btn.className = "hex-box w-full p-4 text-left flex items-start space-x-3 text-xs sm:text-sm cursor-pointer min-h-[64px]";
+                    btn.disabled = false;
+                }
+
+                this.highlightLadder();
+            }
+
+            selectOption(index) {
+                if (this.isLocked) return;
+                this.isLocked = true;
+
+                const q = this.currentQuestions[this.currentIndex];
+                const selectedBtn = document.getElementById(`option-btn-${index}`);
+
+                this.sound.playLock();
+                selectedBtn.classList.add('selected');
+
+                // 1.4 秒後揭曉
+                setTimeout(() => {
+                    const isCorrect = (index === q.correctIndex);
+                    
+                    this.userAnswers.push({
+                        questionObj: q,
+                        userIndex: index,
+                        correctIndex: q.correctIndex,
+                        isCorrect: isCorrect,
+                        stagePrize: PRIZE_STAGES[this.currentIndex].formatted
+                    });
+
+                    if (isCorrect) {
+                        this.sound.playCorrect();
+                        selectedBtn.classList.remove('selected');
+                        selectedBtn.classList.add('correct');
+
+                        setTimeout(() => {
+                            if (this.currentIndex < 14) {
+                                this.currentIndex++;
+                                this.loadQuestion();
+                            } else {
+                                this.endGame(true);
+                            }
+                        }, 1300);
+
+                    } else {
+                        this.sound.playWrong();
+                        selectedBtn.classList.remove('selected');
+                        selectedBtn.classList.add('wrong');
+
+                        const correctBtn = document.getElementById(`option-btn-${q.correctIndex}`);
+                        correctBtn.classList.add('correct');
+
+                        setTimeout(() => {
+                            this.endGame(false);
+                        }, 1600);
+                    }
+                }, 1400);
+            }
+
+            use5050() {
+                if (!this.lifelines.fiftyFifty || this.isLocked) return;
+                this.sound.playLifeline();
+                this.lifelines.fiftyFifty = false;
+                this.updateLifelineUI();
+
+                const q = this.currentQuestions[this.currentIndex];
+                const wrongIndices = [0, 1, 2, 3].filter(i => i !== q.correctIndex);
+                
+                const shuffledWrong = wrongIndices.sort(() => Math.random() - 0.5);
+                const toHide = shuffledWrong.slice(0, 2);
+
+                toHide.forEach(idx => {
+                    const btn = document.getElementById(`option-btn-${idx}`);
+                    btn.classList.add('disabled');
+                    btn.disabled = true;
+                });
+            }
+
+            useHint() {
+                if (!this.lifelines.hint || this.isLocked) return;
+                this.sound.playLifeline();
+                this.lifelines.hint = false;
+                this.updateLifelineUI();
+
+                const q = this.currentQuestions[this.currentIndex];
+                document.getElementById('hint-content-text').innerText = q.hint;
+                this.openModal('modal-hint');
+            }
+
+            usePoll() {
+                if (!this.lifelines.poll || this.isLocked) return;
+                this.sound.playLifeline();
+                this.lifelines.poll = false;
+                this.updateLifelineUI();
+
+                const q = this.currentQuestions[this.currentIndex];
+                
+                // 題目難度越高，同儕答對率稍下降（60% ~ 78%）
+                const correctPct = Math.floor(Math.random() * 19) + 60;
+                let remainingPct = 100 - correctPct;
+
+                const pcts = [0, 0, 0, 0];
+                pcts[q.correctIndex] = correctPct;
+
+                const wrongIndices = [0, 1, 2, 3].filter(i => i !== q.correctIndex);
+                
+                for (let i = 0; i < wrongIndices.length; i++) {
+                    if (i === wrongIndices.length - 1) {
+                        pcts[wrongIndices[i]] = remainingPct;
+                    } else {
+                        const p = Math.floor(Math.random() * (remainingPct + 1));
+                        pcts[wrongIndices[i]] = p;
+                        remainingPct -= p;
+                    }
+                }
+
+                const container = document.getElementById('poll-bars-container');
+                container.innerHTML = '';
+                const labels = ['A', 'B', 'C', 'D'];
+
+                labels.forEach((label, idx) => {
+                    const pct = pcts[idx];
+                    const isCorrect = (idx === q.correctIndex);
+
+                    const rowHtml = `
+                        <div class="flex items-center space-x-3 text-xs">
+                            <span class="font-bold w-4 text-amber-400">${label}:</span>
+                            <div class="flex-grow bg-slate-800 rounded-full h-4 overflow-hidden border border-blue-900">
+                                <div class="h-full ${isCorrect ? 'bg-gradient-to-r from-emerald-500 to-green-400' : 'bg-gradient-to-r from-blue-600 to-indigo-500'} transition-all duration-700" style="width: ${pct}%"></div>
+                            </div>
+                            <span class="w-10 text-right font-mono text-slate-200 font-bold">${pct}%</span>
+                        </div>
+                    `;
+                    container.innerHTML += rowHtml;
+                });
+
+                this.openModal('modal-poll');
+            }
+
+            updateLifelineUI() {
+                document.getElementById('lifeline-5050').disabled = !this.lifelines.fiftyFifty;
+                document.getElementById('lifeline-hint').disabled = !this.lifelines.hint;
+                document.getElementById('lifeline-poll').disabled = !this.lifelines.poll;
+            }
+
+            renderPrizeLadder() {
+                const list = document.getElementById('ladder-list');
+                list.innerHTML = '';
+
+                [...PRIZE_STAGES].reverse().forEach(stage => {
+                    const item = document.createElement('div');
+                    item.id = `ladder-stage-${stage.level}`;
+                    item.className = `ladder-item px-3 py-1 flex justify-between items-center ${stage.safe ? 'safe' : ''}`;
+                    
+                    const safeTag = stage.safe ? (stage.level === 15 ? '👑' : '🔒') : '';
+                    item.innerHTML = `
+                        <span>${stage.level}. ${safeTag}</span>
+                        <span>${stage.formatted}</span>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+
+            highlightLadder() {
+                PRIZE_STAGES.forEach(stage => {
+                    const el = document.getElementById(`ladder-stage-${stage.level}`);
+                    if (!el) return;
+                    el.classList.remove('active', 'completed');
+                    
+                    if (stage.level === this.currentIndex + 1) {
+                        el.classList.add('active');
+                    } else if (stage.level < this.currentIndex + 1) {
+                        el.classList.add('completed');
+                    }
+                });
+            }
+
+            endGame(isPerfectWin) {
+                let finalPrize = "$0";
+                const correctCount = this.userAnswers.filter(a => a.isCorrect).length;
+
+                if (isPerfectWin) {
+                    finalPrize = "$1,000,000";
+                } else {
+                    if (correctCount >= 10) {
+                        finalPrize = "$50,000";
+                    } else if (correctCount >= 5) {
+                        finalPrize = "$10,000";
+                    } else {
+                        finalPrize = "$0";
+                    }
+                }
+
+                document.getElementById('final-prize-text').innerText = finalPrize;
+                document.getElementById('final-score-text').innerText = `${correctCount} / 15 題`;
+
+                if (isPerfectWin) {
+                    document.getElementById('result-icon').innerText = "🏆";
+                    document.getElementById('result-title').innerText = "頂級常識大師！完美通關！";
+                    document.getElementById('result-subtitle').innerText = `恭喜 ${this.playerName} 成功擊破全部 15 條高難度常識測試！`;
+                } else {
+                    document.getElementById('result-icon').innerText = correctCount >= 10 ? "🌟" : (correctCount >= 5 ? "👏" : "💪");
+                    document.getElementById('result-title').innerText = correctCount >= 10 ? "表現極佳！突破十關！" : (correctCount >= 5 ? "達標完成！表現尚佳！" : "仍需努力！細閱下方詳解！");
+                    document.getElementById('result-subtitle').innerText = `${this.playerName} 完成了高難度常識評核，請詳細複習下方知識點！`;
+                }
+
+                this.renderReviewList();
+                this.showScreen('screen-result');
+            }
+
+            renderReviewList() {
+                const reviewContainer = document.getElementById('review-list');
+                reviewContainer.innerHTML = '';
+
+                if (this.userAnswers.length === 0) {
+                    reviewContainer.innerHTML = `<p class="text-xs text-slate-400">未有答題紀錄。</p>`;
+                    return;
+                }
+
+                this.userAnswers.forEach((ans, i) => {
+                    const q = ans.questionObj;
+                    const card = document.createElement('div');
+                    card.className = `p-4 rounded-xl border ${ans.isCorrect ? 'bg-slate-950/80 border-emerald-700/60' : 'bg-slate-950/90 border-red-700/80'} text-xs sm:text-sm space-y-2`;
+
+                    const userOptionText = q.options[ans.userIndex];
+                    const correctOptionText = q.options[ans.correctIndex];
+
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                            <span class="font-bold ${ans.isCorrect ? 'text-emerald-400' : 'text-red-400'}">
+                                ${ans.isCorrect ? '✅ 答對' : '❌ 答錯'} • 第 ${i + 1} 題 [${q.category}]
+                            </span>
+                            <span class="text-xs text-slate-400 font-mono">${ans.stagePrize}</span>
+                        </div>
+                        <p class="font-semibold text-white leading-relaxed">${q.question}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                                <span class="text-slate-400">你的選擇：</span>
+                                <span class="${ans.isCorrect ? 'text-emerald-300 font-bold' : 'text-red-300 font-bold'}">${userOptionText}</span>
+                            </div>
+                            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                                <span class="text-slate-400">正確答案：</span>
+                                <span class="text-emerald-400 font-bold">${correctOptionText}</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 p-3 rounded-lg bg-blue-950/70 border border-blue-800/80 text-blue-100 text-xs leading-relaxed">
+                            <span class="font-bold text-amber-300">💡 知識點與機理詳解：</span>${q.explanation}
+                        </div>
+                    `;
+                    reviewContainer.appendChild(card);
+                });
+            }
+
+            showScreen(screenId) {
+                ['screen-start', 'screen-game', 'screen-result'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (id === screenId) {
+                        el.classList.remove('hidden');
+                        if (id === 'screen-game') el.classList.add('flex');
+                    } else {
+                        el.classList.add('hidden');
+                        el.classList.remove('flex');
+                    }
+                });
+            }
+
+            toggleAudio() {
+                this.sound.muted = !this.sound.muted;
+                document.getElementById('sound-icon').innerText = this.sound.muted ? "🔇" : "🔊";
+                document.getElementById('sound-text').innerText = this.sound.muted ? "音效：靜音" : "音效：開啟";
+            }
+
+            openModal(modalId) {
+                const m = document.getElementById(modalId);
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            }
+
+            closeModal(modalId) {
+                const m = document.getElementById(modalId);
+                m.classList.add('hidden');
+                m.classList.remove('flex');
+            }
+
+            toggleMobileLadder() {
+                const ladder = document.getElementById('ladder-container');
+                if (ladder.classList.contains('hidden')) {
+                    ladder.classList.remove('hidden');
+                    ladder.classList.add('flex', 'fixed', 'inset-x-4', 'top-20', 'z-40', 'bg-slate-950', 'border-2', 'border-amber-400');
+                } else {
+                    ladder.classList.add('hidden');
+                    ladder.classList.remove('flex', 'fixed', 'inset-x-4', 'top-20', 'z-40', 'bg-slate-950', 'border-2', 'border-amber-400');
+                }
+            }
+        }
+
+        const game = new MillionaireGame();
+    </script>
+</body>
+</html>
